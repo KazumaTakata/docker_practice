@@ -1,0 +1,63 @@
+- name: Install docker
+  gather_facts: No
+  hosts: docker
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - yum:
+        name: epel-release
+        state: latest
+    - name: copy yum repo file
+      copy:
+        src: ../files/kubernetes.repo
+        dest: /etc/yum.repos.d/kubernetes.repo
+    - name: install kube packages
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - "vim"
+        - "kubectl"
+        - "kubeadm"
+        - "kubelet"
+    - name: copy selinux file
+      copy:
+        src: ../files/selinux
+        dest: /etc/selinux/config
+    - name: Reboot immediately if there was a change.
+      shell: "sleep 5 && reboot"
+      async: 1
+      poll: 0
+
+    - name: Wait for the reboot to complete if there was a change.
+      wait_for_connection:
+        connect_timeout: 20
+        sleep: 5
+        delay: 5
+        timeout: 300
+    - name: copy selinux file
+      copy:
+        src: ../files/k8s.conf
+        dest: /etc/sysctl.d/k8s.conf
+    - name: enable and start kubelet
+      systemd:
+        name: kubelet
+        state: started
+        enabled: yes
+
+    - name: swap off
+      command: swapoff -a
+
+    - name: reset
+      shell: yes 'y' | kubeadm reset
+
+    - name: copy selinux file
+      copy:
+        src: ../box/joinFile
+        dest: ./
+
+    - name: Changing perm of joinfile
+      file: dest=./joinFile mode=a+x
+
+    - shell: ./joinFile
