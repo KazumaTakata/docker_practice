@@ -1,0 +1,1 @@
+kubeadm join 192.168.60.5:6443 --token kjmcu5.slfmqm2z9dwjayu3 --discovery-token-ca-cert-hash sha256:cd94acea0a4c0eb464fe6284f77b5a7c595346a27480a0889a1ead3115d352b2

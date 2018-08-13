@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostpath-pd
+spec:
+  containers:
+    - image: nginx
+      name: nginx-volume
+      volumeMounts:
+        - mountPath: /cache
+          name: cache-volume
+    - image: centos
+      name: centos
+      volumeMounts:
+        - mountPath: /cache
+          name: cache-volume
+      command:
+        [
+          "/bin/sh",
+          "-c",
+          "while : ;do curl http://localhost:80/; sleep 10; done",
+        ]
+
+  volumes:
+    - name: cache-volume
+      hostPath:
+        path: /tmp/data

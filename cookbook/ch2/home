@@ -1,0 +1,11 @@
+
+box ansible_host=192.168.60.5
+
+[docker]
+box
+
+[docker:vars]
+ansible_connection=ssh
+ansible_user=vagrant
+ansible_private_key_file=~/.ssh/id_rsa
+host_key_checking=False

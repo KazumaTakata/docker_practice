@@ -10,7 +10,7 @@
         state: latest
     - name: copy yum repo file
       copy:
-        src: ./files/kubernetes.repo
+        src: ../files/kubernetes.repo
         dest: /etc/yum.repos.d/kubernetes.repo
     - name: install kube packages
       yum:
@@ -21,10 +21,9 @@
         - "kubectl"
         - "kubeadm"
         - "kubelet"
-        - "python-pip"
     - name: copy selinux file
       copy:
-        src: ./files/selinux
+        src: ../files/selinux
         dest: /etc/selinux/config
     - name: Reboot immediately if there was a change.
       shell: "sleep 5 && reboot"
@@ -39,7 +38,7 @@
         timeout: 300
     - name: copy selinux file
       copy:
-        src: ./files/k8s.conf
+        src: ../files/k8s.conf
         dest: /etc/sysctl.d/k8s.conf
     - name: enable and start kubelet
       systemd:
@@ -53,21 +52,12 @@
     - name: reset
       shell: yes 'y' | kubeadm reset
 
-    - name: init kubeadm
-      command: sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.60.5
-
-    - name: set cni
-      shell: >
-        mkdir -p $HOME/.kube ;
-        sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config ;
-        sudo chown $(id -u):$(id -g) $HOME/.kube/config ;
-        sudo kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml ;
-        sudo kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
-
-    - name: create join file
-      shell: kubeadm token create --print-join-command > joinFile
-
-    - name: copy join file to local
-      fetch:
-        src: ./joinFile
+    - name: copy selinux file
+      copy:
+        src: ../box/joinFile
         dest: ./
+
+    - name: Changing perm of joinfile
+      file: dest=./joinFile mode=a+x
+
+    - shell: ./joinFile
